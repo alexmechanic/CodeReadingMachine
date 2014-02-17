@@ -5,7 +5,7 @@
 #include <cstdint>
 
 class Memory {
-public:
+public: 
 	read4(uint32_t, uint32_t &);
 };
 
