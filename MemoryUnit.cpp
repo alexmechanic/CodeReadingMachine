@@ -32,6 +32,8 @@ byte* MemoryUnit::translate(byte* ptr) const {
 	if( buf == -1) {
 		log("TLB entry not found. Allocating new entry. \n");
 		buf = tlb.placeIntoMemory( extractPageNumber(ptr) );
+		if( buf < 0 )
+			return NULL; //temporarily
 		log("...allocated RAM-page #%d\n", buf);
 	} else
 		log("Found TLB entry with. Phisical memory page number %d.\n", buf);

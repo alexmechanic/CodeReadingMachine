@@ -36,17 +36,13 @@ public:
 
 	template <typename T>
 	inline int read(byte *src_ptr, T& t) const { //TODO сделать не inline (?)
+		log("Reading at %p\n", buf_src_ptr);
 		T* buf_src_ptr = reinterpret_cast<T*>(translate(src_ptr));
-		try {
-			log("Reading at %p\n", buf_src_ptr);
+		if (buf_src_ptr == NULL) {
 			t = *buf_src_ptr;
 			return 0;
-		} catch (std::exception &e){
-			log("Exception during reading at %p:\n", buf_src_ptr);
-			log(e.what());
-			return -1;
-		} catch (...) {
-			log("Error during reading at %p:\n", buf_src_ptr);
+		} else {
+			log("Error at reading\n");
 			return -1;
 		}
 	}
