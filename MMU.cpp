@@ -5,7 +5,8 @@ unsigned int extractPageNumber(byte* ptr) {
 };
 
 unsigned int extractPageBias(byte* ptr) {
-	return reinterpret_cast<unsigned int>(ptr) & (config::SIZE_OF_PAGE - 1);
+	int buf = reinterpret_cast<unsigned int>(ptr) & (config::SIZE_OF_PAGE - 1);
+	return buf;
 };
 
 int TLB::placeIntoMemory(unsigned int vpn) {

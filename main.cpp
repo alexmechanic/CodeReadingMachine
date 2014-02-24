@@ -19,13 +19,15 @@ int main() {
 	try {
 		cout << extractPageNumber( reinterpret_cast<byte*>(4095) )  << " " << extractPageBias( reinterpret_cast<byte*>(4095) ) << endl;
 		mu = new MemoryUnit();
-		mu->write(mu->debug_getMemory(), buf);
-		mu->readInt(mu->debug_getMemory(), foo);
+		mu->write(reinterpret_cast<byte*>(1), &buf);
+
+
+		mu->readInt(reinterpret_cast<byte*>(1), &foo);
 		cout << foo << endl;
 
 		mu->loadProgram("program.txt");
 
-		cout << mu->debug_getLog();
+		//cout << mu->debug_getLog();
 	} catch (std::exception &e) {
 		printf("%s\n", e.what());
 		delete mu;
