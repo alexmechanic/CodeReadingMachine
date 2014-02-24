@@ -17,7 +17,8 @@ int main() {
 	int foo = 111;
 
 	try {
-		mu = new MemoryUnit(9096);
+		cout << extractPageNumber( reinterpret_cast<byte*>(4095) )  << " " << extractPageBias( reinterpret_cast<byte*>(4095) ) << endl;
+		mu = new MemoryUnit();
 		mu->write(mu->debug_getMemory(), buf);
 		mu->readInt(mu->debug_getMemory(), foo);
 		cout << foo << endl;

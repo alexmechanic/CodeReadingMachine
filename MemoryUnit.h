@@ -5,36 +5,34 @@
 #include <iostream>
 #include <string>
 #include <stdarg.h>
-
-typedef unsigned char byte;
-typedef byte BYTE;
-typedef unsigned short word;
-typedef word WORD;
-typedef unsigned int dword;
-typedef dword DWORD;
+#include "MMU.h"
 
 class MemoryUnit {
 private:
-	byte* m_phisicalMemory;
-	size_t m_size;
+	const size_t m_size;
+	byte * const m_phisicalMemory;
+	byte * const m_swapMemory;
+	mutable TLB tlb;
+
+	byte *buf_ptr; //buffer pointner, used in several functions
+	mutable std::string m_debug_log; //log
+	mutable char m_debug_buffer[128]; //buffer for formated print into log 
+	mutable char m_main_buffer[128]; //common buffer for formated print
+
 	byte* translate(byte* ptr) const; //транслировать из виртуального адреса в физический; 
 	// ѕока что на этом месте заглушка, возвращающа€ сам ptr
-	byte *buf_ptr; //буферный указатель, скорее всего понадобитс€ в дальнейшем, сейчас используетс€ только в loadProgram
-	mutable std::string m_debug_log; //лог
-	mutable char m_debug_bufer[128]; //буфер дл€ печати в лог, т.к. нельз€ (?) форматированно писать сразу в string
-	mutable char m_main_bufer[128]; //буфер дл€ всего остального, чтобы log работал нормально
-	void log(const char *_Format, ...) const;
+	void log(const char *_Format, ...) const;	
 
 public:
-	MemoryUnit(size_t size);
+	MemoryUnit();
 	~MemoryUnit();
 
 	void loadProgram(const char* path);
-	void writeBytes(byte *dst_ptr, byte *src_ptr, size_t size);
-	void writeCharString(byte *dst_ptr, const char *src_ptr);
+	int writeBytes(byte *dst_ptr, byte *src_ptr, size_t size);
+	int writeCharString(byte *dst_ptr, const char *src_ptr);
 
 	template <typename T>
-	inline void write(byte *dst_ptr, T& t) {writeBytes(dst_ptr, reinterpret_cast<byte*>(&t), sizeof(T));}
+	inline int write(byte *dst_ptr, T& t) {return writeBytes(dst_ptr, reinterpret_cast<byte*>(&t), sizeof(T));}
 
 	template <typename T>
 	inline int read(byte *src_ptr, T& t) const { //TODO сделать не inline (?)
@@ -59,6 +57,7 @@ public:
 	
 	byte* debug_getMemory() {return m_phisicalMemory;} //только дл€ дебага
 	std::string& debug_getLog() {return m_debug_log;} //дебаг, хот€ можно оставить и на потом
+	//TODO: написать функцию дампа пам€ти
 };
 
 
