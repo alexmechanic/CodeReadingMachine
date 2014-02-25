@@ -1,0 +1,40 @@
+.data
+  string1: .asciiz " sum = " 
+  string2: .asciiz "\n"
+
+ .text
+
+main:
+ li $t1, 7          # n 
+ li $t2, 1          # a1 
+ li $t3, 0          # sum 
+
+ j loop
+
+loop:
+
+  add $t3, $t3, $t2			
+  addiu $t2, $t2, 2
+  addiu $t1, $t1, -1
+
+  beq $t1, 0, endloop
+  j loop
+
+ 
+
+ endloop:
+
+  la $a0, string1
+  li $v0, 4
+  syscall 
+
+  li $v0, 1
+  la $a0, ($t3)
+  syscall
+
+  la $a0, string2
+  li $v0, 4
+  syscall 
+  
+  li $v0, 10
+  syscall   
