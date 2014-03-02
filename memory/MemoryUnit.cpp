@@ -2,13 +2,13 @@
 #include <stdexcept>
 
 MemoryUnit::MemoryUnit(): m_phisicalMemory((byte*)malloc(config::SIZE_OF_RAM_MEMORY)), 
-									m_swapMemory((byte*)malloc(config::SIZE_OF_SWAP)),
+									m_swapMemory((byte*)malloc(config::SIZE_OF_SWAP_FILE)),
 									tlb() {
 	logFile = fopen("log.txt", "w");
 	if(logFile == NULL) { printf("WARNING: Can\'t create file for log\n"); }
 	if(m_phisicalMemory == NULL) {throw std::bad_alloc("Can not allocate phisicalMemory for MemoryUnit");}
 	log("Allocated %d bytes for physical memory\n", config::SIZE_OF_RAM_MEMORY);
-	log("Allocated %d bytes for swap\n", config::SIZE_OF_SWAP);
+	log("Allocated %d bytes for swap\n", config::SIZE_OF_SWAP_FILE);
 }
 
 MemoryUnit::~MemoryUnit() { 
@@ -22,25 +22,26 @@ MemoryUnit::~MemoryUnit() {
 	fclose(logFile);
 }
 
-int MemoryUnit::writeBytes(byte *dstPtr, byte *srcPtr, size_t size) {
-	try {dstPtr = translate(dstPtr);} catch(...) {return -1;} 
-	memcpy(dstPtr, srcPtr, size);
-	log("%d bytes were written at %p from %p\n", size, dstPtr, srcPtr);
+int MemoryUnit::writeBytes(address dstPtr, byte *srcPtr, size_t size) {
+	byte *realPtr; //adress on real machine
+	log("Writing from real address %p to virtual address %p\n", srcPtr, dstPtr);
+	if( (dstPtr = translate(dstPtr)) == NULL ) {
+		log("Trying to write at NULL/n");
+		return -1;
+		//exit(-1); //will be fixed later
+	}
+	realPtr = convertIntoRealPtr(dstPtr);
+	memcpy(realPtr, srcPtr, size);
+	log("%d bytes were written at %p (real: %p) from %p\n", size, dstPtr, realPtr, srcPtr);
 	return 0;
 }
 
-int MemoryUnit::writeCharString(byte *dstPtr, const char *srcPtr) {
-	try {dstPtr = translate(dstPtr);} catch(...) {return -1;}
-	strcpy( reinterpret_cast<char*>(dstPtr), srcPtr);
-	log("%d bytes of chars were written at %p from %p\n", strlen(srcPtr), dstPtr, srcPtr);
-	return 0;
-}
 
-byte* MemoryUnit::translate(byte* ptr) const {
+address MemoryUnit::translate(address ptr) {
 
 	log("Translating %p\n", ptr);
 
-	int bufVirtualPage = tlb.translateVirtualPage( extractPageNumber(ptr) );
+	unsigned int bufVirtualPage = tlb.translateVirtualPage( extractPageNumber(ptr) );
 	if( bufVirtualPage == -1) {
 		log("TLB entry not found. Allocating new entry. \n");
 		bufVirtualPage = tlb.placeIntoMemory( extractPageNumber(ptr) );
@@ -49,35 +50,52 @@ byte* MemoryUnit::translate(byte* ptr) const {
 		log("...allocated RAM-page #%d\n", bufVirtualPage);
 	} else
 		log("Found TLB entry with phisical memory page number %d.\n", bufVirtualPage);
-	return m_phisicalMemory + bufVirtualPage*config::SIZE_OF_PAGE + extractPageBias(ptr);
+	log("Translated to RAM address %p\n", bufVirtualPage*config::SIZE_OF_PAGE + extractPageBias(ptr));
+	return bufVirtualPage*config::SIZE_OF_PAGE + extractPageBias(ptr);
 	//return ptr; //заглушка
+}
+
+byte *MemoryUnit::convertIntoRealPtr(address adrs) const {
+	log("RAM address %p translated into real address %p\n", adrs, adrs + m_phisicalMemory);
+	return adrs + m_phisicalMemory;
 }
 
 void MemoryUnit::log(const char *_Format, ...) const {
 	//Insert here possible return because of disabled logging
 	va_list args;
 	va_start(args, _Format);
-	vsnprintf_s(m_debug_buffer, sizeof(m_debug_buffer), sizeof(m_debug_buffer), _Format, args);
-	fwrite(reinterpret_cast<void*>(m_debug_buffer), sizeof(char), strlen(m_debug_buffer), logFile);
+	char debug_buffer[256];
+	vsnprintf_s(debug_buffer, sizeof(debug_buffer), sizeof(debug_buffer), _Format, args);
+	fwrite(reinterpret_cast<void*>(debug_buffer), sizeof(char), strlen(debug_buffer), logFile);
+	if(config::COPY_LOG)
+		printf(debug_buffer);
 	fflush(logFile);
 	//fprintf(logFile, m_debug_buffer);
 	va_end(args);
 }
 
-void MemoryUnit::loadProgram(const char* path) {
+int MemoryUnit::loadProgram(const char* path, address adrs) {
 	FILE *src_file = NULL;
 	unsigned int bias = 0;
-	if( (src_file = fopen(path, "r")) == NULL)
-		throw std::invalid_argument("Can not open code file\n");
+	char mainBuffer[256]; //buffer for formated print
+	if( (src_file = fopen(path, "r")) == NULL) {
+		log("Can\'t open file with programm\n");
+		return -1;
+	}
 	else {
 		log("Loading program:\n===\n");
 		while(!feof(src_file)) {
-			if ( fgets (m_mainBuffer, sizeof(m_mainBuffer), src_file) == NULL ) 
+			if ( fgets (mainBuffer, sizeof(mainBuffer), src_file) == NULL ) 
 				break;
-			writeCharString( translate(m_phisicalMemory + bias), m_mainBuffer);
-			bias += strlen(m_mainBuffer);
+			writeBytes( adrs + bias, reinterpret_cast<byte*>(mainBuffer), strlen(mainBuffer));
+			bias += strlen(mainBuffer);
 		}
 		log("===\n");
-		fclose (src_file);
+		if( fclose (src_file) == EOF) {
+			log("Can\'t close file with programm\n");
+			return -2;
+		}
+		else
+			return 0;
 	}
 }

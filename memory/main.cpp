@@ -9,7 +9,7 @@ using std::endl;
 int main() {
 
 	//=======================
-	//Тест-драйв для MemoryUnit
+	//Test drive for MemoryUnit
 	//=======================
 
 	MemoryUnit* mu = NULL;
@@ -17,21 +17,26 @@ int main() {
 	int foo = 111;
 
 	try {
-		cout << extractPageNumber( reinterpret_cast<byte*>(4095) )  << " " << extractPageBias( reinterpret_cast<byte*>(4095) ) << endl;
+		cout << extractPageNumber( 16383 )  << " " << extractPageBias( 16383 ) << endl;
 		mu = new MemoryUnit();
-		mu->write(reinterpret_cast<byte*>(1), &buf);
+		mu->write(4, &buf);
 
 
-		mu->readInt(reinterpret_cast<byte*>(1), &foo);
+		mu->readInt(4, &foo);
+
 		cout << foo << endl;
 
-		mu->loadProgram("program.txt");
+		mu->loadProgram("program.txt", 8);
 
 		//cout << mu->debug_getLog();
 	} catch (std::exception &e) {
 		printf("%s\n", e.what());
 		delete mu;
-		mu = NULL;
+		mu = NULL; 
+	} catch (...) {
+		printf("Unrecognized error on running\n");
+		delete mu;
+		mu = NULL; 
 	}
 	
 

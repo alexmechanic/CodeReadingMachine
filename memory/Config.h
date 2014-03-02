@@ -6,23 +6,23 @@
 #include <math.h> 
 
 typedef unsigned char byte;
-typedef byte BYTE;
 typedef unsigned short word;
-typedef word WORD;
 typedef unsigned int dword;
-typedef dword DWORD;
+typedef unsigned int address;
 
 namespace config {
 
-	const unsigned int SIZE_OF_SWAP = 4096; //size of "HDD" in bytes
-	const unsigned int SIZE_OF_RAM_MEMORY = 4096; //size of RAM in bytes
-	const unsigned int SIZE_OF_PAGE = 1024; //in bytes
-	const unsigned int BIT_PAGE_BIAS = static_cast<int>( ceil( log( static_cast<double>(SIZE_OF_PAGE) )/log(2.0) ) ); //number of bytes allocated for bias in page
-	const unsigned int BIT_PAGE_NUMBER = sizeof(byte *) - BIT_PAGE_BIAS; //number of bytes allocated for page number
-	const unsigned int NUMBER_OF_VIRTUAL_PAGES = static_cast<int>( pow( 2.0, static_cast<double>(BIT_PAGE_NUMBER) ) ); //maximum number of pages
+	const unsigned int BITS_IN_BYTE = 8; //syntax sugar
+	const bool COPY_LOG = true; //copies log on console if true
+
+	const unsigned int SIZE_OF_SWAP_FILE = 16384; //size of swap file in bytes
+	const unsigned int SIZE_OF_RAM_MEMORY = 16384; //size of RAM in bytes
+	const unsigned int BIT_PAGE_NUMBER = 20; //number of bits allocated for page number
+	const unsigned int BIT_PAGE_BIAS = BITS_IN_BYTE*sizeof(address) - BIT_PAGE_NUMBER; //number of bits allocated for bias in page
+	const unsigned int NUMBER_OF_VIRTUAL_PAGES = static_cast<int>( 1 << BIT_PAGE_NUMBER ); //maximum number of pages
+	const unsigned int SIZE_OF_PAGE = static_cast<unsigned int>( 1 << BIT_PAGE_BIAS ); //size of page in bytes
 	const unsigned int SIZE_OF_TLB = 8; 
-	 const unsigned int NUMBER_OF_RAM_PAGES = static_cast<int>( ceil( static_cast<double>(SIZE_OF_RAM_MEMORY)/SIZE_OF_PAGE ) );
-	const long long MAX_ARRANGABLE_BITS = NUMBER_OF_VIRTUAL_PAGES*SIZE_OF_PAGE;
+	const unsigned int NUMBER_OF_RAM_PAGES = SIZE_OF_RAM_MEMORY/SIZE_OF_PAGE;
 
 };
 
