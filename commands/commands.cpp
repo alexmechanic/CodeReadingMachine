@@ -7,13 +7,22 @@ using namespace std;
 void ADD (uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  //ADD + ADD immediate
 // константные ссылки. необходима для последнего аргумента чтобы работало сложение с константыой, вторая - до кучи, и потому как не нужно измеять значение второго регистра
 //при случае вызова ADDI имя функции тупо заменяется на ADD, ибо нечего 2 одинаковых функции заводить
-{	r_to = r1+r2;	};
+{	
+	uint32_t sum = readRegister(r1) + readRegister(r2);
+	writeRegister(r_to, sum);	
+};
 
 void ADDU(uint32_t  (&r_to), const uint32_t   (&r1), const uint32_t   (&r2))
-{	r_to = (uint32_t)(r1+r2);	};
+{	
+	uint32_t sum = readRegister(r1) + readRegister(r2);
+	writeRegister(r_to, sum);
+};
 
 void ADDUI(uint32_t  (&r_to), const uint32_t   (&r1), const int32_t C)
-{	r_to = (uint32_t)(r1+C);	};
+{	
+	uint32_t sum = readRegister(r1) + C;
+	writeRegister(r_to, sum);
+};
 //--------------------------------------------------
 
 //commands SUB and its derivatives
@@ -21,16 +30,16 @@ void ADDUI(uint32_t  (&r_to), const uint32_t   (&r1), const int32_t C)
 void SUB(uint32_t (&r_to), const uint32_t (&r1), const uint32_t (&r2))  //sub
 // константные ссылки. необходима для последнего аргумента потому как не нужно измеять значение ни второго, ни первого регистров
 {
-	uint32_t diff = r1-r2; // потом обработать случаи переполнения (?)
-	r_to = diff;
+	uint32_t diff = readRegister(r1) - readRegister(r2); // потом обработать случаи переполнения (?)
+	writeRegister(r_to, diff);
 
 };
 
 void SUBU(uint32_t (&r_to), const uint32_t (&r1), const uint32_t (&r2))
 // константные ссылки. необходима для последнего аргумента потому как не нужно измеять значение ни второго, ни первого регистров
 {
-	uint32_t diff = r1-r2; // потом обработать случаи переполнения (?)
-	r_to = diff;
+	uint32_t diff = readRegister(r1) - readRegister(r2); // потом обработать случаи переполнения (?)
+	writeRegister(r_to, diff);
 };
 //--------------------------------------------------
 
@@ -39,15 +48,15 @@ void SUBU(uint32_t (&r_to), const uint32_t (&r1), const uint32_t (&r2))
 void DIV(const uint32_t (&r1), const uint32_t (&r2))
 // константные ссылки. необходимы потому как не нужно изменять значение ни второго, ни первого регистров, плюс - передача по ссылке
 {
-	LO = r1 / r2;
-	HI = r1 % r2;
+	writeRegister( Registers::LO, readRegister(r1) / readRegister(r2) );
+	writeRegister( Registers::HI, readRegister(r1) % readRegister(r2) );
 };
 
 void DIVU(const uint32_t (&r1), const uint32_t (&r2))
 // константные ссылки. необходимы потому как не нужно изменять значение ни второго, ни первого регистров, плюс - передача по ссылке
 {
-	LO = r1 / r2;
-	HI = (r1 % r2);
+	writeRegister( Registers::LO, (readRegister(r1) / readRegister(r2)) );
+	writeRegister( Registers::HI, (readRegister(r1) % readRegister(r2)) );
 };
 //--------------------------------------------------
 
@@ -56,17 +65,17 @@ void DIVU(const uint32_t (&r1), const uint32_t (&r2))
 void MULT(const uint32_t (&r1), const uint32_t (&r2))
 // константные ссылки. необходимы потому как не нужно изменять значение ни второго, ни первого регистров, плюс - передача по ссылке
 {
-	int64_t result = (int64_t)r1 * r2;
-	LO = (result << 32) >> 32;
-	HI = result >> 32; // нужно ли помещать старшую часть в HI, если такого нет в reference?
+	int64_t result = (int64_t)(readRegister(r1) * readRegister(r2));
+	writeRegister( Registers::LO, ((result << 32) >> 32) );
+	writeRegister( Registers::HI, (result >> 32) ); // нужно ли помещать старшую часть в HI, если такого нет в reference?
 };
 
 void MULTU(const uint32_t (&r1), const uint32_t (&r2))
 // константные ссылки. необходимы потому как не нужно изменять значение ни второго, ни первого регистров, плюс - передача по ссылке
 {
-	int64_t result = (int64_t)r1 * r2;
-	LO = (result << 32) >> 32;
-	HI = result >> 32; //нужно ли помещать старшую часть в HI, если такого нет в reference?
+	int64_t result = (int64_t)(readRegister(r1) * readRegister(r2));
+	writeRegister( Registers::LO, ((result << 32) >> 32) );
+	writeRegister( Registers::HI, (result >> 32) ); // нужно ли помещать старшую часть в HI, если такого нет в reference?
 };
 //--------------------------------------------------
 //==================================================
@@ -77,99 +86,107 @@ void MULTU(const uint32_t (&r1), const uint32_t (&r2))
 //commands AND and its derivatives
 //--------------------------------------------------
 void AND(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))
-{	r_to = r1 & r2;		};
+{	writeRegister(r_to, (readRegister(r1) & readRegister(r2)) );	};
 
 void ANDI(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t  C)
-{	r_to = r1 & C;		};
+{	writeRegister(r_to, (readRegister(r1) & C) );	};
 //--------------------------------------------------
 
 //commands OR and its derivatives
 //--------------------------------------------------
 void OR(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  //Bitwise or
-{	r_to = r1 | r2;		};
+{	writeRegister(r_to, readRegister(r1) | readRegister(r2) );		};
 
 void ORI(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t  C)  // Bitwise or immediate
-{	r_to = r1 | C;		};
+{	writeRegister(r_to, (readRegister(r1) | C) );		};
 
 void XOR(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  //Bitwise exclusive or
-{	r_to = r1 ^ r2;		};
+{	writeRegister(r_to, readRegister(r1) ^ readRegister(r2) );		};
 
 void XORI(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  C)  //Bitwise exclusive or
-{	r_to = r1 ^ C;		};
+{	writeRegister(r_to, (readRegister(r1) ^ C) );		};
 
 void NOR(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  // Bitwise exclusive or immediate
-{	r_to = ~(r1 | r2);	};
+{	writeRegister(r_to, (~(r1 | r2)) );		};
 //==================================================
 
 //SHIFT OPERATIONS
 //==================================================
 void SLL(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t C) // Shift left logical
-{	r_to = r1 << C;		};
+{	writeRegister(r_to, (readRegister(r1) << C) );		};
 
 void SRL(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t C) // Shift right logical
-{	r_to = r1 >> C;		};
+{	writeRegister(r_to, (readRegister(r1) >> C) );		};
 
 void SLLV(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t (&r2)) // Shift left logical variable
-{	r_to = r1 << r2;	};
+{	writeRegister(r_to, (readRegister(r1) << readRegister(r2)) );	};
 
 void SRLV(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t (&r2)) // Shift right logical variable
-{	r_to = r1 >> r2;	};
+{	writeRegister(r_to, (readRegister(r1) >> readRegister(r2)) );	};
 
 void SRA(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t C) // Shift right arithmetic
-{	r_to = r1 >> C;		}; // в чем разница с Shift right logical?!
+{	writeRegister(r_to, (readRegister(r1) >> C) );		}; // в чем разница с Shift right logical?!
 //==================================================
 
 //SET OPERATIONS
 //==================================================
 void SLT(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  // Set on less than (signed)
-{	r_to = (r1 < r2) ? 1 : 0;	};
+{	writeRegister(r_to, ( \
+						(readRegister(r1) < readRegister(r2)) ? 1 : 0 \
+						) );	};
 
 void SLTI(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t C)  // Set on less than immediate (signed)
-{	r_to = (r1 < C) ? 1 : 0;	};
+{	writeRegister(r_to, ( \
+						(readRegister(r1) < C) ? 1 : 0 \
+						) );	};
 
 void SLTU(uint32_t  (&r_to), const uint32_t  (&r1), const uint32_t  (&r2))  // Set on less than (unsigned)
-{	r_to = (r1 < r2) ? 1 : 0;	};
+{	writeRegister(r_to, ( \
+						(readRegister(r1) < readRegister(r2)) ? 1 : 0 \
+						) );	};
 
 void SLTUI(uint32_t  (&r_to), const uint32_t  (&r1), const int32_t C)  // Set on less than immediate (unsigned)
-{	r_to = (r1 < C) ? 1 : 0;	};
+{	writeRegister(r_to, ( \
+						(readRegister(r1) < C) ? 1 : 0 \
+						) );	};
 //==================================================
 
 //MOVE OPERATIONS
 //==================================================
 void MFLO(uint32_t  (&r_to))  // Move from LO
-{	r_to = LO;	};
+{	writeRegister(r_to, readRegister(Registers::LO) );	};
 
 void MFHI(uint32_t  (&r_to))  // Move from HI
-{	r_to = HI;	};
+{	writeRegister(r_to, readRegister(Registers::HI) );	};
 //==================================================
 
 //LUI OPERATION
 //==================================================
 void LUI(uint32_t  (&r_to), const int32_t C)  // load upper immediate
-{	r_to = C << 16;	};
+{	writeRegister(r_to, (C << 16) );	};
 //==================================================
 
 //MEMORY OPERATIONS
 //==================================================
 void LB(uint32_t  (&) r_to, const int32_t (&) r1, const uint32_t offset) //Load byte
-{	if (readByte (*(r1+offset), r_to) != 0 )
+{	if (readByte (r1+offset, r_to) != 0 )
 	{	/*error*/	}
 };
 
 void LW(uint32_t  (&r_to), const int32_t (&r1), const uint32_t offset) //Load byte
-{	if (readWord (*(r1+offset), r_to) != 0 )
+{	if (readWord (r1+offset, r_to) != 0 )
 	{	/*error*/	}
 };
 
 void SB(uint32_t  (&r_from), const uint32_t (&r1), const uint32_t offset); // Store byte
 {
-	if (write(*(r1+offset), r_from) != 0 )
+	if (writeByte(r1+offset, r_from) != 0 )
 	{	/*error*/	}
 };
 
 void SW(uint32_t  (&r_from), const uint32_t (&r1), const uint32_t offset); // Store word
 {
-	if (write(*(r1+offset), r_from) != 0 )
+	if (writeWord(r1+offset, r_from) != 0 )
 	{	/*error*/	}
 };
 //==================================================
