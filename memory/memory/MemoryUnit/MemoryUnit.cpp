@@ -1,14 +1,15 @@
 #include "MemoryUnit.h"
 #include <stdexcept>
 
+
 MemoryUnit::MemoryUnit(LogKeeper *a_logKeeper):   
 		m_physicalMemory((byte*)malloc(config::SIZE_OF_RAM_MEMORY*sizeof(byte))), 
 		m_pageUsed((byte*)malloc(config::NUMBER_OF_RAM_PAGES*sizeof(byte))),
 		m_logKeeper(a_logKeeper),
 		m_tlb(a_logKeeper)
 {
-	if(m_physicalMemory == NULL) {throw std::bad_alloc("CTOR: Can not allocate m_physicalMemory for MemoryUnit");}
-	if(m_pageUsed == NULL) {throw std::bad_alloc("CTOR: Can not allocate m_pageUsed for MemoryUnit");}
+	if(m_physicalMemory == NULL) {exit (1);}
+	if(m_pageUsed == NULL) {exit (1);}
 	for(unsigned int i = 0; i < config::NUMBER_OF_RAM_PAGES; ++i)
 		m_pageUsed[i] = 0;
 	m_logKeeper->log("CTOR: Allocated %d bytes for physical memory\n", config::SIZE_OF_RAM_MEMORY);

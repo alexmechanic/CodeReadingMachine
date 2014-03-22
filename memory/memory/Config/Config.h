@@ -9,6 +9,10 @@
 #include <iostream>
 #include <string>
 #include <stdarg.h>
+#include <stdio.h> 
+#include <cstring>
+#include <limits.h>
+
 
 typedef unsigned char byte;
 typedef unsigned short word;
