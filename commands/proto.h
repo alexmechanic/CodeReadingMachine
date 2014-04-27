@@ -108,7 +108,7 @@ void BLTZ (const Core (&), DecodedInstrucion); // Branch on less than zero (DOES
 
 //JUMP OPERATIONS
 //==================================================
-void J(const Core (&o_core), DecodedInstrucion m_instruction); // Jump
+void J_(const Core (&o_core), DecodedInstrucion m_instruction); // Jump
 				  // PC = nPC; nPC = (PC & 0xf0000000) | (target << 2);
 				  // j target
 void JAL (const Core (&o_core), DecodedInstrucion m_instruction); // Jump and link

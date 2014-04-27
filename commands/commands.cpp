@@ -253,7 +253,7 @@ void SYSCALL()
 
 //JUMP OPERATIONS
 //==================================================
-void J(const Core (&o_core), DecodedInstrucion m_instruction) // Jump
+void J_(const Core (&o_core), DecodedInstrucion m_instruction) // Jump
 {
 	o_core->m_pc = o_core->nPC; 
 	o_core->nPC = (o_core->m_pc & 0xf0000000) | (target << 2);
