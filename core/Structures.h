@@ -30,7 +30,7 @@ union Instruction {
 enum InstructionFormat {R, I, J};
 
 enum Registers	{zero, at, v0, v1, a0, a1, a2, a3, t0, t1, t2, t3, t4, t5, t6, t7,
-				t8, t9, s0, s1, s2, s3, s4, s5, s6, s7, s8, k0, k1, gp, sp, ra};
+				t8, t9, s0, s1, s2, s3, s4, s5, s6, s7, s8, k0, k1, gp, sp, ra, HI, LO};
 
 struct DecodedInstruction {
 	InstructionFormat format;
@@ -59,7 +59,11 @@ struct DecodedInstruction {
 };
 
 struct BasicBlock {
+	BasicBlock() {
+		N = 0;
+	}
 	uint32_t pc;
+	uint32_t next_pc;
 	uint32_t N;
 	DecodedInstruction inst[BASICBLOCKSIZE];
 };
